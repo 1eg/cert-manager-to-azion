@@ -1,0 +1,57 @@
+name: Release and Publish
+
+on:
+  push:
+    branches-ignore:
+      - '**'
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  create_release:
+    name: Create release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Crate Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+
+  publish_to_npm:
+    name: Publish to NPM
+    needs: [ create_release ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 10.12
+          registry-url: https://registry.npmjs.org/
+      - run: npm i
+      - run: npm run build
+      - run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  push_to_docker_hub:
+    name: Push do Docker Hub
+    needs: [ create_release ]
+    runs-on: ubuntu-latest
+    steps:
+      - id: vars
+        run: |
+          echo "::set-output name=version::$(VERSION=${GITHUB_REF##*/}; echo ${VERSION#v})"
+          echo "::set-output name=repo_name::${GITHUB_REPOSITORY#*/}"
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          tags: oneeg/${{ steps.vars.outputs.repo_name }}:${{ steps.vars.outputs.version }}

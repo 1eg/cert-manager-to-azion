@@ -19,6 +19,10 @@ program
 
 const options = Object.assign(
     {
+        cmName: process.env['CM_TO_AZION_CM_NAME'],
+        cmNamespace: process.env['CM_TO_AZION_CM_NAMESPACE'],
+        kubeContext: process.env['CM_TO_AZION_KUBE_CONTEXT'],
+        azionName: process.env['CM_TO_AZION_AZION_NAME'],
         azionUsername: process.env['CM_TO_AZION_AZION_USERNAME'],
         azionPassword: process.env['CM_TO_AZION_AZION_PASSWORD']
     },

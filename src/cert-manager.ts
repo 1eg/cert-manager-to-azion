@@ -32,7 +32,7 @@ async function getCertificateCrd(kubeConfig: KubeConfig, name: string, namespace
     try {
         return (await customObjectsApi.getNamespacedCustomObject(
             'cert-manager.io',
-            'v1alpha2',
+            'v1',
             namespace,
             'certificates',
             name
